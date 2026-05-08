@@ -1,13 +1,27 @@
 const express = require('express');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const DEMO_MODE = !GEMINI_API_KEY || process.env.DEMO_MODE === 'true';
 
-app.use(express.json());
+// ── Security Middleware ──
+app.use(helmet({ contentSecurityPolicy: false })); // Secure headers but allow inline styles/scripts for demo
+app.use(cors()); // Restrict domains in prod
+app.use(express.json({ limit: '15kb' })); // Mitigate payload DoS
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Rate Limiting ──
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', limiter);
 
 // Gemini Streaming Endpoint
 app.post('/api/plan', async (req, res) => {

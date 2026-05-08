@@ -258,7 +258,11 @@ function renderDayCard(day) {
           ${label}
         </div>
         <div class="time-content">
-          <div class="activity-name">${esc(slot.activity || '')}</div>
+          <div class="activity-name">
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(slot.activity + ' ' + (day.theme || ''))}" target="_blank" rel="noopener noreferrer" title="View on Google Maps">
+              ${esc(slot.activity || '')} <span style="font-size: 12px">↗️</span>
+            </a>
+          </div>
           <div class="activity-desc">${esc(slot.description || '')}</div>
           <div class="activity-meta">
             ${slot.duration ? `<span class="activity-tag">⏱ ${esc(slot.duration)}</span>` : ''}
