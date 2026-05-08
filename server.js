@@ -35,12 +35,29 @@ app.post('/api/plan', async (req, res) => {
     return;
   }
 
+  function sendMockStream(res, destination, budget, duration, travelStyle) {
+    const dest = destination || 'your destination';
+    const mock = buildMockItinerary(dest, duration || 5, budget || 2000, travelStyle || 'Cultural');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    const chunks = JSON.stringify(mock).match(/.{1,80}/g) || [];
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < chunks.length) {
+        res.write('data: ' + JSON.stringify({ text: chunks[i++] }) + '\n\n');
+      } else {
+        clearInterval(timer);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      }
+    }, 20);
+  }
+
   const systemPrompt = 'You are an expert travel planner and experience curator. You create vivid, detailed, personalized travel itineraries.\n\nWhen given a travel request, respond with a beautifully structured day-by-day itinerary in the following JSON format:\n\n{"title":"Trip title","summary":"2-3 sentence overview","highlights":["h1","h2","h3"],"budget_breakdown":{"accommodation":"$XXX","food":"$XXX","activities":"$XXX","transport":"$XXX","total":"$XXX"},"weather_tip":"Brief tip","days":[{"day":1,"theme":"Arrival & First Impressions","morning":{"activity":"Name","description":"Vivid description","duration":"2 hours","cost":"$XX","tip":"Insider tip"},"afternoon":{"activity":"Name","description":"Vivid description","duration":"3 hours","cost":"$XX","tip":"Insider tip"},"evening":{"activity":"Name","description":"Vivid description","duration":"2 hours","cost":"$XX","tip":"Insider tip"},"accommodation":"Hotel recommendation","dining":"Restaurant pick"}],"packing_list":["item1","item2"],"local_phrases":[{"phrase":"...","meaning":"...","pronunciation":"..."}],"emergency_contacts":{"local_emergency":"Number","tourist_helpline":"Number"}}\n\nMake it vivid and perfectly tailored. Always respond with ONLY valid JSON, no markdown code blocks.';
 
   const userMessage = buildUserMessage({ prompt, preferences, budget, duration, travelStyle, destination, travelers });
-
   try {
-    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=' + GEMINI_API_KEY;
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
 
     const geminiRes = await fetch(geminiUrl, {
       method: 'POST',
@@ -48,90 +65,54 @@ app.post('/api/plan', async (req, res) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 8192,
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              title: { type: "STRING" },
-              summary: { type: "STRING" },
-              highlights: { type: "ARRAY", items: { type: "STRING" } },
-              budget_breakdown: { type: "OBJECT", properties: { accommodation: { type: "STRING" }, food: { type: "STRING" }, activities: { type: "STRING" }, transport: { type: "STRING" }, total: { type: "STRING" } } },
-              weather_tip: { type: "STRING" },
-              days: { type: "ARRAY", items: { type: "OBJECT", properties: {
-                day: { type: "INTEGER" }, theme: { type: "STRING" },
-                morning: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
-                afternoon: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
-                evening: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
-                accommodation: { type: "STRING" }, dining: { type: "STRING" }
-              } } },
-              packing_list: { type: "ARRAY", items: { type: "STRING" } },
-              local_phrases: { type: "ARRAY", items: { type: "OBJECT", properties: { phrase: { type: "STRING" }, meaning: { type: "STRING" }, pronunciation: { type: "STRING" } } } },
-              emergency_contacts: { type: "OBJECT", properties: { local_emergency: { type: "STRING" }, tourist_helpline: { type: "STRING" } } }
-            }
-          }
-        }
+        generationConfig: { temperature: 0.8, maxOutputTokens: 8192, responseMimeType: 'application/json' }
       })
     });
 
     if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error('Gemini error:', errText);
-      // On quota error, fall back to demo mode
       if (geminiRes.status === 429) {
         console.log('Quota exceeded — falling back to demo mode');
-        const dest = destination || 'your destination';
-        const mock = buildMockItinerary(dest, duration || 5, budget || 2000, travelStyle || 'Cultural');
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        const chunks = JSON.stringify(mock).match(/.{1,80}/g) || [];
-        let i = 0;
-        const timer = setInterval(() => {
-          if (i < chunks.length) {
-            res.write('data: ' + JSON.stringify({ text: chunks[i++] }) + '\n\n');
-          } else {
-            clearInterval(timer);
-            res.write('data: [DONE]\n\n');
-            res.end();
-          }
-        }, 20);
-        return;
+        return sendMockStream(res, destination, budget, duration, travelStyle);
       }
-      return res.status(502).json({ error: 'Gemini API error: ' + geminiRes.status });
+      throw new Error(`Gemini API error: ${geminiRes.status}`);
     }
 
+    const data = await geminiRes.json();
+    let text = '';
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      text = data.candidates[0].content.parts[0].text;
+    } else {
+      throw new Error('Invalid response structure from Gemini');
+    }
+
+    // Server-side validation to guarantee it's perfect JSON before sending to frontend
+    try {
+      JSON.parse(text); 
+    } catch (e) {
+      console.error('Gemini generated invalid JSON. Falling back to demo mode.');
+      return sendMockStream(res, destination, budget, duration, travelStyle);
+    }
+
+    // Simulate streaming to frontend for the UI effect
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const reader = geminiRes.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            const text = parsed && parsed.candidates && parsed.candidates[0] &&
-              parsed.candidates[0].content && parsed.candidates[0].content.parts &&
-              parsed.candidates[0].content.parts[0] && parsed.candidates[0].content.parts[0].text;
-            if (text) res.write('data: ' + JSON.stringify({ text }) + '\n\n');
-          } catch (_) {}
-        }
+    let i = 0;
+    const chunkSize = 60;
+    const timer = setInterval(() => {
+      if (i >= text.length) {
+        clearInterval(timer);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } else {
+        const chunk = text.slice(i, i + chunkSize);
+        res.write('data: ' + JSON.stringify({ text: chunk }) + '\n\n');
+        i += chunkSize;
       }
-    }
-    res.write('data: [DONE]\n\n');
-    res.end();
+    }, 15);
+
   } catch (err) {
     console.error('Server error:', err);
     if (!res.headersSent) res.status(500).json({ error: err.message });
