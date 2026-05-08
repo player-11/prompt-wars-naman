@@ -48,7 +48,31 @@ app.post('/api/plan', async (req, res) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 8192, responseMimeType: 'application/json' }
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              title: { type: "STRING" },
+              summary: { type: "STRING" },
+              highlights: { type: "ARRAY", items: { type: "STRING" } },
+              budget_breakdown: { type: "OBJECT", properties: { accommodation: { type: "STRING" }, food: { type: "STRING" }, activities: { type: "STRING" }, transport: { type: "STRING" }, total: { type: "STRING" } } },
+              weather_tip: { type: "STRING" },
+              days: { type: "ARRAY", items: { type: "OBJECT", properties: {
+                day: { type: "INTEGER" }, theme: { type: "STRING" },
+                morning: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
+                afternoon: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
+                evening: { type: "OBJECT", properties: { activity: { type: "STRING" }, description: { type: "STRING" }, duration: { type: "STRING" }, cost: { type: "STRING" }, tip: { type: "STRING" } } },
+                accommodation: { type: "STRING" }, dining: { type: "STRING" }
+              } } },
+              packing_list: { type: "ARRAY", items: { type: "STRING" } },
+              local_phrases: { type: "ARRAY", items: { type: "OBJECT", properties: { phrase: { type: "STRING" }, meaning: { type: "STRING" }, pronunciation: { type: "STRING" } } } },
+              emergency_contacts: { type: "OBJECT", properties: { local_emergency: { type: "STRING" }, tourist_helpline: { type: "STRING" } } }
+            }
+          }
+        }
       })
     });
 
