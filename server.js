@@ -48,7 +48,7 @@ app.post('/api/plan', async (req, res) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 8192 }
+        generationConfig: { temperature: 0.8, maxOutputTokens: 8192, responseMimeType: 'application/json' }
       })
     });
 
