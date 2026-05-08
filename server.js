@@ -40,7 +40,7 @@ app.post('/api/plan', async (req, res) => {
   const userMessage = buildUserMessage({ prompt, preferences, budget, duration, travelStyle, destination, travelers });
 
   try {
-    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=' + GEMINI_API_KEY;
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=' + GEMINI_API_KEY;
 
     const geminiRes = await fetch(geminiUrl, {
       method: 'POST',
