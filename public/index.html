@@ -164,6 +164,18 @@
   <!-- ── Itinerary Output ── -->
   <section class="itinerary-section" id="itinerary-section" hidden>
 
+    <!-- Top Action Bar for PDF Export -->
+    <div class="action-bar" style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+      <button id="export-pdf-btn" class="secondary-btn" aria-label="Download as PDF" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">
+        📄 Download PDF
+      </button>
+    </div>
+
+    <!-- Google Maps Embed Integration -->
+    <div id="map-container" style="margin-bottom: 20px; border-radius: 12px; overflow: hidden; height: 300px; display: none;">
+      <iframe id="google-map-iframe" width="100%" height="100%" frameborder="0" style="border:0" allowfullscreen></iframe>
+    </div>
+
     <div class="itinerary-header" id="itinerary-header">
       <!-- filled by JS -->
     </div>
@@ -181,9 +193,14 @@
     </div>
 
     <div class="action-bar">
-      <button class="action-btn secondary" id="refine-btn">
-        🔄 Refine Itinerary
-      </button>
+      <!-- AI Refine Input -->
+      <div id="ai-refine-box" style="display: flex; gap: 10px; width: 100%; margin-bottom: 20px;">
+        <input type="text" id="refine-input" placeholder="e.g., Make Day 2 cheaper, or Swap dinner for a vegan place" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white;">
+        <button class="action-btn secondary" id="refine-submit-btn" aria-label="Refine Itinerary">
+          🔄 Refine AI
+        </button>
+      </div>
+
       <button class="action-btn primary" id="new-trip-btn">
         ✨ Plan Another Trip
       </button>
@@ -208,6 +225,7 @@
   <p>WanderAI • Built for Hack2Skill Prompt Wars 2026 • Powered by Google Gemini</p>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

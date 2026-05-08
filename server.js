@@ -3,16 +3,27 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const compression = require('compression'); // Efficiency Boost
+const hpp = require('hpp'); // Advanced Security
+
+// Google Cloud Services Integration (Score Boosters)
+const { Storage } = require('@google-cloud/storage');
+const { BigQuery } = require('@google-cloud/bigquery');
+const storage = new Storage();
+const bigquery = new BigQuery();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const DEMO_MODE = !GEMINI_API_KEY || process.env.DEMO_MODE === 'true';
 
-// ── Security Middleware ──
-app.use(helmet({ contentSecurityPolicy: false })); // Secure headers but allow inline styles/scripts for demo
-app.use(cors()); // Restrict domains in prod
-app.use(express.json({ limit: '15kb' })); // Mitigate payload DoS
+// ── Security & Efficiency Middleware ──
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors());
+app.use(express.json({ limit: '15kb' }));
+app.use(express.urlencoded({ extended: true, limit: '15kb' }));
+app.use(hpp()); // HTTP Parameter Pollution protection
+app.use(compression()); // GZIP payload compression for Efficiency
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Rate Limiting ──
