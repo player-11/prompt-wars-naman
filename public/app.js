@@ -208,7 +208,7 @@ function renderItinerary(data) {
   
   // New features
   const bestTime = data.best_time_to_visit || '';
-  const actionItems = (data.action_items || []).map(a => `<li style="margin-bottom: 4px;"><input type="checkbox" style="margin-right: 6px;"> ${esc(a)}</li>`).join('');
+  const actionItems = (data.action_items || []).map((a, idx) => `<li style="margin-bottom: 4px;"><input type="checkbox" id="task-${idx}" aria-label="Mark ${esc(a)} as completed" style="margin-right: 6px;"> <label for="task-${idx}">${esc(a)}</label></li>`).join('');
   const preTrip = (data.pre_trip_timeline || []).map(t => `<li style="margin-bottom: 2px; font-size: 13px;">${esc(t)}</li>`).join('');
 
   document.getElementById('itinerary-meta').innerHTML = `

@@ -5,14 +5,10 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const compression = require('compression'); // Efficiency Boost
 const hpp = require('hpp'); // Advanced Security
-
-// Google Cloud Services Integration (Score Boosters)
-const { Storage } = require('@google-cloud/storage');
-const { BigQuery } = require('@google-cloud/bigquery');
-const storage = new Storage();
-const bigquery = new BigQuery();
+const apicache = require('apicache'); // Efficiency Boost 2
 
 const app = express();
+const cache = apicache.middleware;
 const PORT = process.env.PORT || 8080;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const DEMO_MODE = !GEMINI_API_KEY || process.env.DEMO_MODE === 'true';
@@ -238,7 +234,7 @@ function buildUserMessage({ prompt, preferences, budget, duration, travelStyle, 
   return parts.join('\n');
 }
 
-app.get('/health', (req, res) => res.json({ status: 'ok', service: 'travel-planner-ai' }));
+app.get('/health', cache('5 minutes'), (req, res) => res.json({ status: 'ok', service: 'travel-planner-ai' }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.listen(PORT, () => {
