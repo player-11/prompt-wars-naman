@@ -71,6 +71,9 @@ app.post('/api/plan', async (req, res) => {
       if (i < chunks.length) {
         res.write('data: ' + JSON.stringify({ text: chunks[i++] }) + '\n\n');
       } else {
+        clearInterval(timer);
+        res.write('data: [DONE]\n\n');
+        res.end();
       }
     }, 20);
   }
