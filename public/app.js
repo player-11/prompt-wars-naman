@@ -336,8 +336,14 @@ if (refineSubmitBtn) {
   refineSubmitBtn.addEventListener('click', () => {
     const input = document.getElementById('refine-input');
     if (!input || !input.value.trim()) return;
-    alert(`AI Refinement requested: "${input.value}"\n(This interaction proves dynamic assistant functionality for the evaluation score!)`);
+    
+    // Append the refinement to the original prompt
+    const originalPrompt = state.currentRequest.prompt || '';
+    state.currentRequest.prompt = originalPrompt + '\n\nIMPORTANT REFINEMENTS FROM USER: ' + input.value.trim();
+    
+    // Re-trigger the generation
     input.value = '';
+    fetchItinerary(state.currentRequest);
   });
 }
 

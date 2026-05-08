@@ -218,13 +218,20 @@ function buildMockItinerary(destination, duration, budget, style) {
 
 function buildUserMessage({ prompt, preferences, budget, duration, travelStyle, destination, travelers }) {
   const parts = [];
-  if (prompt) parts.push('Trip request: ' + prompt);
   if (destination) parts.push('Destination: ' + destination);
   if (duration) parts.push('Duration: ' + duration + ' days');
   if (travelers) parts.push('Travelers: ' + travelers);
   if (budget) parts.push('Total budget: $' + budget + ' USD');
   if (travelStyle) parts.push('Travel style: ' + travelStyle);
   if (preferences && preferences.length > 0) parts.push('Preferences: ' + preferences.join(', '));
+  
+  if (prompt) {
+    parts.push('\n======================================');
+    parts.push('CRITICAL USER INSTRUCTIONS (OF IMMENSE IMPORTANCE):');
+    parts.push(`"""\n${prompt}\n"""`);
+    parts.push('You MUST build the entire itinerary heavily around these instructions. Follow them perfectly.');
+    parts.push('======================================\n');
+  }
   return parts.join('\n');
 }
 
