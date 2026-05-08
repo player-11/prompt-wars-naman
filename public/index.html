@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WanderAI — AI Travel Planning & Experience Engine</title>
+  <meta name="description" content="Plan your perfect trip with AI. Enter your travel preferences and get a personalized, detailed day-by-day itinerary powered by Google Gemini." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Animated Background ── -->
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">✈️</span>
+      <span class="logo-text">WanderAI</span>
+      <span class="logo-badge">Powered by Gemini</span>
+    </div>
+    <p class="header-tagline">Your AI-powered travel companion</p>
+  </div>
+</header>
+
+<!-- ── Main Content ── -->
+<main class="main">
+
+  <!-- ── Planner Panel ── -->
+  <section class="planner-panel" id="planner-panel">
+    <div class="panel-header">
+      <h1 class="panel-title">Plan Your Dream Trip</h1>
+      <p class="panel-subtitle">Describe your ideal journey and watch AI craft a personalized itinerary in seconds</p>
+    </div>
+
+    <form id="trip-form" class="trip-form" autocomplete="off">
+
+      <!-- Prompt Input -->
+      <div class="form-group full-width">
+        <label for="prompt-input" class="form-label">
+          <span class="label-icon">💬</span> Describe your trip
+        </label>
+        <textarea
+          id="prompt-input"
+          class="prompt-textarea"
+          placeholder="e.g. I want to explore the ancient temples of Kyoto, experience authentic street food, and hike Mount Fuji. I love culture, photography, and hidden gems off the tourist trail…"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- Row 1: Destination + Duration + Travelers -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="destination-input" class="form-label">
+            <span class="label-icon">📍</span> Destination
+          </label>
+          <input type="text" id="destination-input" class="form-input" placeholder="e.g. Bali, Japan, Europe" />
+        </div>
+        <div class="form-group">
+          <label for="duration-input" class="form-label">
+            <span class="label-icon">📅</span> Duration (days)
+          </label>
+          <input type="number" id="duration-input" class="form-input" placeholder="e.g. 7" min="1" max="30" value="5" />
+        </div>
+        <div class="form-group">
+          <label for="travelers-input" class="form-label">
+            <span class="label-icon">👥</span> Travelers
+          </label>
+          <input type="text" id="travelers-input" class="form-input" placeholder="e.g. 2 adults, 1 child" />
+        </div>
+      </div>
+
+      <!-- Budget Slider -->
+      <div class="form-group full-width">
+        <label for="budget-slider" class="form-label">
+          <span class="label-icon">💰</span> Total Budget
+          <span class="budget-display" id="budget-display">$2,000</span>
+        </label>
+        <div class="slider-wrapper">
+          <span class="slider-min">$500</span>
+          <input type="range" id="budget-slider" class="budget-slider" min="500" max="20000" step="100" value="2000" />
+          <span class="slider-max">$20,000</span>
+        </div>
+      </div>
+
+      <!-- Travel Style -->
+      <div class="form-group full-width">
+        <label class="form-label"><span class="label-icon">🎨</span> Travel Style</label>
+        <div class="style-chips" id="style-chips">
+          <button type="button" class="chip" data-value="Adventure">🧗 Adventure</button>
+          <button type="button" class="chip active" data-value="Cultural">🏛️ Cultural</button>
+          <button type="button" class="chip" data-value="Luxury">💎 Luxury</button>
+          <button type="button" class="chip" data-value="Budget">🎒 Budget</button>
+          <button type="button" class="chip" data-value="Romantic">❤️ Romantic</button>
+          <button type="button" class="chip" data-value="Family">👨‍👩‍👧 Family</button>
+          <button type="button" class="chip" data-value="Solo">🧘 Solo</button>
+          <button type="button" class="chip" data-value="Foodie">🍜 Foodie</button>
+          <button type="button" class="chip" data-value="Beach">🏖️ Beach</button>
+          <button type="button" class="chip" data-value="Nature">🌿 Nature</button>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="form-group full-width">
+        <label class="form-label"><span class="label-icon">⭐</span> Preferences & Interests</label>
+        <div class="pref-chips" id="pref-chips">
+          <button type="button" class="chip-sm" data-value="Photography">📸 Photography</button>
+          <button type="button" class="chip-sm" data-value="Local cuisine">🍽️ Local cuisine</button>
+          <button type="button" class="chip-sm" data-value="Museums">🎨 Museums</button>
+          <button type="button" class="chip-sm" data-value="Nightlife">🎵 Nightlife</button>
+          <button type="button" class="chip-sm" data-value="Shopping">🛍️ Shopping</button>
+          <button type="button" class="chip-sm" data-value="Hiking">⛰️ Hiking</button>
+          <button type="button" class="chip-sm" data-value="Water sports">🤿 Water sports</button>
+          <button type="button" class="chip-sm" data-value="Wellness & Spa">🧖 Wellness & Spa</button>
+          <button type="button" class="chip-sm" data-value="Architecture">🏰 Architecture</button>
+          <button type="button" class="chip-sm" data-value="Wildlife">🦁 Wildlife</button>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="form-group full-width">
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span class="btn-icon">🗺️</span>
+          <span class="btn-text">Generate My Itinerary</span>
+          <span class="btn-spinner" id="btn-spinner" hidden></span>
+        </button>
+      </div>
+
+    </form>
+  </section>
+
+  <!-- ── Loading State ── -->
+  <div class="loading-state" id="loading-state" hidden>
+    <div class="loading-card">
+      <div class="loading-globe">🌍</div>
+      <h2 class="loading-title">Crafting your perfect journey…</h2>
+      <p class="loading-sub">AI is planning every detail of your adventure</p>
+      <div class="loading-steps" id="loading-steps">
+        <div class="loading-step active" id="step-1">📍 Mapping your destination</div>
+        <div class="loading-step" id="step-2">🗓️ Building your day-by-day schedule</div>
+        <div class="loading-step" id="step-3">💰 Calculating budget breakdown</div>
+        <div class="loading-step" id="step-4">🌤️ Checking travel tips</div>
+        <div class="loading-step" id="step-5">✨ Adding local insider secrets</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Itinerary Output ── -->
+  <section class="itinerary-section" id="itinerary-section" hidden>
+
+    <div class="itinerary-header" id="itinerary-header">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="itinerary-meta" id="itinerary-meta">
+      <!-- highlights, budget, weather -->
+    </div>
+
+    <div class="days-grid" id="days-grid">
+      <!-- day cards filled by JS -->
+    </div>
+
+    <div class="itinerary-footer" id="itinerary-footer">
+      <!-- packing list, phrases, etc -->
+    </div>
+
+    <div class="action-bar">
+      <button class="action-btn secondary" id="refine-btn">
+        🔄 Refine Itinerary
+      </button>
+      <button class="action-btn primary" id="new-trip-btn">
+        ✨ Plan Another Trip
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ── Error State ── -->
+  <div class="error-state" id="error-state" hidden>
+    <div class="error-card">
+      <span class="error-icon">⚠️</span>
+      <h3 class="error-title">Oops, something went wrong</h3>
+      <p class="error-msg" id="error-msg">Please try again.</p>
+      <button class="action-btn primary" id="retry-btn">Try Again</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <p>WanderAI • Built for Hack2Skill Prompt Wars 2026 • Powered by Google Gemini</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
