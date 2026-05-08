@@ -202,14 +202,21 @@ function renderItinerary(data) {
   `;
 
   // Meta cards
+  // Meta cards
   const highlights = (data.highlights || []).map(h => `<li>${esc(h)}</li>`).join('');
   const budget = data.budget_breakdown || {};
+  
+  // New features
+  const bestTime = data.best_time_to_visit || '';
+  const actionItems = (data.action_items || []).map(a => `<li style="margin-bottom: 4px;"><input type="checkbox" style="margin-right: 6px;"> ${esc(a)}</li>`).join('');
+  const preTrip = (data.pre_trip_timeline || []).map(t => `<li style="margin-bottom: 2px; font-size: 13px;">${esc(t)}</li>`).join('');
+
   document.getElementById('itinerary-meta').innerHTML = `
-    <div class="meta-card">
+    <div class="meta-card" contenteditable="true" style="outline: none;">
       <div class="meta-card-title">✦ Highlights</div>
       <ul class="highlight-list">${highlights}</ul>
     </div>
-    <div class="meta-card">
+    <div class="meta-card" contenteditable="true" style="outline: none;">
       <div class="meta-card-title">💰 Budget Breakdown</div>
       <div class="budget-grid">
         ${ Object.entries(budget).filter(([k]) => k !== 'total').map(([k, v]) =>
@@ -218,9 +225,17 @@ function renderItinerary(data) {
         ${ budget.total ? `<div class="budget-item budget-total">Total: ${esc(budget.total)}</div>` : '' }
       </div>
     </div>
-    <div class="meta-card">
-      <div class="meta-card-title">🌤️ Travel Tip</div>
-      <div class="weather-tip">${esc(data.weather_tip || 'Check local conditions before you go.')}</div>
+    <div class="meta-card" contenteditable="true" style="outline: none; grid-column: span 2;">
+      <div class="meta-card-title">📅 Planning & Action Items</div>
+      <div style="display: flex; gap: 20px;">
+        <div style="flex: 1;">
+          ${bestTime ? `<p style="font-size: 13px; margin-bottom: 8px;"><strong>Best Time:</strong> ${esc(bestTime)}</p>` : ''}
+          ${preTrip ? `<p style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Timeline:</p><ul style="padding-left: 20px;">${preTrip}</ul>` : ''}
+        </div>
+        <div style="flex: 1;">
+          ${actionItems ? `<p style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">To-Do List:</p><ul style="list-style: none; padding: 0;">${actionItems}</ul>` : ''}
+        </div>
+      </div>
     </div>
   `;
 

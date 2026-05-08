@@ -71,16 +71,14 @@ app.post('/api/plan', async (req, res) => {
       if (i < chunks.length) {
         res.write('data: ' + JSON.stringify({ text: chunks[i++] }) + '\n\n');
       } else {
-        clearInterval(timer);
-        res.write('data: [DONE]\n\n');
-        res.end();
       }
     }, 20);
   }
 
-  const systemPrompt = 'You are an expert travel planner and experience curator. You create vivid, detailed, personalized travel itineraries.\n\nWhen given a travel request, respond with a beautifully structured day-by-day itinerary in the following JSON format:\n\n{"title":"Trip title","summary":"2-3 sentence overview","highlights":["h1","h2","h3"],"budget_breakdown":{"accommodation":"$XXX","food":"$XXX","activities":"$XXX","transport":"$XXX","total":"$XXX"},"weather_tip":"Brief tip","days":[{"day":1,"theme":"Arrival & First Impressions","morning":{"activity":"Name","description":"Vivid description","duration":"2 hours","cost":"$XX","tip":"Insider tip"},"afternoon":{"activity":"Name","description":"Vivid description","duration":"3 hours","cost":"$XX","tip":"Insider tip"},"evening":{"activity":"Name","description":"Vivid description","duration":"2 hours","cost":"$XX","tip":"Insider tip"},"accommodation":"Hotel recommendation","dining":"Restaurant pick"}],"packing_list":["item1","item2"],"local_phrases":[{"phrase":"...","meaning":"...","pronunciation":"..."}],"emergency_contacts":{"local_emergency":"Number","tourist_helpline":"Number"}}\n\nMake it vivid and perfectly tailored. Always respond with ONLY valid JSON, no markdown code blocks.';
+  const systemPrompt = 'You are an expert travel planner. Create a highly detailed itinerary in the following JSON format:\n\n{"title":"Trip title","summary":"Overview","best_time_to_visit":"Best season & upcoming events","pre_trip_timeline":["3 months before: Book flights","1 month before: Visa","1 week before: Packing"],"action_items":["Book hotel","Apply for Visa","Buy travel insurance"],"highlights":["h1","h2"],"budget_breakdown":{"accommodation":"$XXX","food":"$XXX","activities":"$XXX","transport":"$XXX","total":"$XXX"},"weather_tip":"Brief tip","days":[{"day":1,"theme":"Arrival","morning":{"activity":"Name","description":"Vivid","duration":"2 hrs","cost":"$XX","tip":"Insider tip"},"afternoon":{"activity":"Name","description":"Vivid","duration":"3 hrs","cost":"$XX","tip":"Insider tip"},"evening":{"activity":"Name","description":"Vivid","duration":"2 hrs","cost":"$XX","tip":"Insider tip"},"accommodation":"Hotel","dining":"Restaurant"}],"packing_list":["item1"],"local_phrases":[{"phrase":"...","meaning":"...","pronunciation":"..."}],"emergency_contacts":{"local_emergency":"Number","tourist_helpline":"Number"}}\n\nRespond ONLY with valid JSON. No markdown code blocks.';
 
   const userMessage = buildUserMessage({ prompt, preferences, budget, duration, travelStyle, destination, travelers });
+
   try {
     const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY;
 
@@ -95,8 +93,8 @@ app.post('/api/plan', async (req, res) => {
     });
 
     if (!geminiRes.ok) {
-      if (geminiRes.status === 429) {
-        console.log('Quota exceeded — falling back to demo mode');
+      if (geminiRes.status === 429 || geminiRes.status >= 500) {
+        console.log(`API Error ${geminiRes.status} — falling back to demo mode`);
         return sendMockStream(res, destination, budget, duration, travelStyle);
       }
       throw new Error(`Gemini API error: ${geminiRes.status}`);
